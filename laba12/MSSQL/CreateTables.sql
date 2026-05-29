@@ -1,0 +1,52 @@
+use TransportationServices;
+
+CREATE TABLE Roles (
+    RoleID INT PRIMARY KEY IDENTITY(1,1),
+    RoleName NVARCHAR(50) NOT NULL UNIQUE
+);
+
+CREATE TABLE OrderStatus (
+    StatusID INT PRIMARY KEY IDENTITY(1,1),
+    StatusName NVARCHAR(50) NOT NULL
+);
+
+CREATE TABLE Users (
+    UserID INT PRIMARY KEY IDENTITY(1,1),
+    RoleID INT FOREIGN KEY REFERENCES Roles(RoleID),
+    FullName NVARCHAR(150) NOT NULL,
+    Email NVARCHAR(100) UNIQUE,
+    Phone NVARCHAR(50),
+    PasswordHash NVARCHAR(255) NOT NULL
+);
+
+CREATE TABLE Vehicles (
+    VehicleID INT PRIMARY KEY IDENTITY(1,1),
+    DriverID INT FOREIGN KEY REFERENCES Users(UserID),
+    Brand NVARCHAR(100),
+    LicensePlate NVARCHAR(20) UNIQUE,
+    CapacityKG DECIMAL(10,2),
+    VolumeM3 DECIMAL(10,2)
+);
+
+CREATE TABLE Orders (
+    OrderID INT PRIMARY KEY IDENTITY(1,1),
+    ClientID INT FOREIGN KEY REFERENCES Users(UserID),
+    VehicleID INT FOREIGN KEY REFERENCES Vehicles(VehicleID),
+    StatusID INT FOREIGN KEY REFERENCES OrderStatus(StatusID),
+    PickupAddress NVARCHAR(255) NOT NULL,
+    DropAddress NVARCHAR(255) NOT NULL,
+    Price DECIMAL(10,2) DEFAULT 0,
+    OrderDate DATETIME DEFAULT GETDATE()
+);
+
+CREATE TABLE Report (
+    id INT IDENTITY(1,1) PRIMARY KEY,
+    XmlData XML
+);
+
+DROP TABLE Report;
+DROP TABLE Orders;
+DROP TABLE Vehicles;
+DROP TABLE Users;
+DROP TABLE OrderStatus;
+DROP TABLE Roles;

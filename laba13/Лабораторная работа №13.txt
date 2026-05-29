@@ -1,0 +1,90 @@
+--3
+db.services.insertMany([
+  { name: "Стандартная перевозка", base_price: 5000, description: "Обычная доставка фурой" },
+  { name: "Экспресс доставка", base_price: 15000, description: "Срочная доставка малотоннажным транспортом" },
+  { name: "Рефрижератор", base_price: 25000, description: "Перевозка скоропортящихся грузов" }
+]);
+
+db.orders.insertMany([
+  { client: "ООО Ромашка", service_name: "Стандартная перевозка", distance: 450, price: 15000, status: "В пути", tags: ["недорого", "межгород"] },
+  { client: "ИП Иванов", service_name: "Экспресс доставка", distance: 50, price: 8000, status: "Доставлен", tags: ["срочно", "хрупкое"], discount: 10 },
+  { client: "ЗАО Вектор", service_name: "Рефрижератор", distance: 1200, price: 85000, status: "Создан", tags: ["продукты"] },
+  { client: "ООО Ромашка", service_name: "Экспресс доставка", distance: 15, price: 3000, status: "Доставлен", tags: ["срочно"] }
+]);
+
+db.orders.updateOne(
+  { client: "ЗАО Вектор" }, 
+  { $set: { status: "В пути" } }
+);
+
+db.orders.updateMany(
+  { status: "Доставлен" },
+  { $set: { rating: 5 } }
+);
+
+--4
+db.orders.find({ price: { $gt: 10000 } });
+
+db.orders.find({ tags: "срочно" });
+
+db.orders.find({ discount: { $exists: true } });
+
+db.orders.find({ distance: { $type: "number" } });
+
+db.services.find({ name: { $regex: "^Экспресс", $options: "i" } });
+
+--5
+db.orders.find(
+  {}, 
+  { client: 1, price: 1, status: 1, _id: 0 }
+);
+
+--6
+db.services.countDocuments();
+
+db.orders.countDocuments({ status: "Доставлен" });
+
+--7
+db.orders.find().skip(1).limit(2);
+
+--8
+db.orders.distinct("client");
+
+db.orders.distinct("status");
+
+--9
+db.orders.aggregate([
+  { 
+    $group: {
+      _id: null,                         
+      total_orders_count: { $sum: 1 },   
+      total_revenue: { $sum: "$price" }  
+    }
+  }
+]);
+
+--10
+db.orders.aggregate([
+  { $match: {} }, 
+  { $group: {
+      _id: null, 
+      total_revenue: { $sum: "$price" },
+      avg_distance: { $avg: "$distance" }
+  }}
+]);
+
+db.orders.aggregate([
+  { 
+    $match: { distance: { $gt: 20 } } 
+  },
+  
+  { 
+    $group: {
+      _id: { ClientName: "$client", OrderStatus: "$status" }, 
+      orders_count: { $sum: 1 },         
+      total_money: { $sum: "$price" }
+    }
+  }
+]);
+
+db.dropDatabase()
